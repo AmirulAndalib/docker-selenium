@@ -6,6 +6,12 @@
 [![Releases downloads](https://img.shields.io/github/downloads/seleniumhq/docker-selenium/total.svg)](https://github.com/SeleniumHQ/docker-selenium/releases)
 [<img src="https://devin.ai/assets/deepwiki-badge.png" alt="Ask DeepWiki.com" height="20"/>](https://deepwiki.com/SeleniumHQ/docker-selenium)
 
+![GitHub Last Commit](https://img.shields.io/github/last-commit/seleniumhq/docker-selenium)
+[![GitHub Release](https://img.shields.io/github/v/release/seleniumhq/docker-selenium?link=https%3A%2F%2Fgithub.com%2Fseleniumhq%2Fdocker-selenium%2Freleases%2Flatest&label=latest%20Image)](https://github.com/seleniumhq/docker-selenium/releases/)
+![GitHub Commits Since Latest Release](https://img.shields.io/github/commits-since/seleniumhq/docker-selenium/latest)
+![GitHub Commit Activity](https://img.shields.io/github/commit-activity/m/seleniumhq/docker-selenium)
+![GitHub Contributors](https://img.shields.io/github/contributors/seleniumhq/docker-selenium?label=Contributors%20-%20Thank%20you!)
+
 # Docker images for the Selenium Grid Server
 
 The project is made possible by volunteer contributors who have put in thousands of hours of their own time, 
@@ -20,6 +26,8 @@ These images are published to the Docker Hub registry at [Selenium Docker Hub](h
 - Hub: [![Docker Pulls](https://img.shields.io/docker/pulls/selenium/hub.svg?maxAge=604800)](https://hub.docker.com/r/selenium/hub/)
 - Node-Chrome: [![Docker Pulls](https://img.shields.io/docker/pulls/selenium/node-chrome.svg?maxAge=604800)](https://hub.docker.com/r/selenium/node-chrome/)
 - Standalone-Chrome: [![Docker Pulls](https://img.shields.io/docker/pulls/selenium/standalone-chrome.svg?maxAge=604800)](https://hub.docker.com/r/selenium/standalone-chrome/)
+
+Helm Chart enables the creation of a Selenium Grid Server in Kubernetes at [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/selenium-grid)](https://artifacthub.io/packages/search?repo=selenium-grid)
 
 ## Community
 
