@@ -1,3 +1,20 @@
+## :heavy_check_mark: selenium-grid-0.45.3
+
+- Chart is using image tag 4.34.0-20250727
+- Chart is tested on Kubernetes versions: v1.26.15,v1.27.16,v1.28.15,v1.29.15,v1.30.14,v1.31.11,v1.32.7,v1.33.3
+- Chart is tested on container runtime Docker versions: 26.1.4,27.4.1,27.5.1
+- Chart is tested on Helm versions: v3.11.3,v3.12.3,v3.13.3,v3.14.3,v3.15.4,v3.16.4,v3.17.4,v3.18.4
+- Chart is tested autoscaling capabilities with KEDA image tag: 2.17.2-selenium-grid-20250721
+- Selenium Grid Scaler implementation preview. [README](https://github.com/seleniumhq/docker-selenium/tree/trunk/.keda/README.md)
+
+### Changed
+- [`ab1f1994`](http://github.com/seleniumhq/docker-selenium/commit/ab1f19942746788e19fd32d79c3df6dac9989a11) - [ci] Update tag 4.34.0-20250727 in docs and files :: Selenium CI Bot
+- [`2d4be06f`](http://github.com/seleniumhq/docker-selenium/commit/2d4be06f139e72032d362c6544671ddd5adf2aaa) - Docker: Use GreedySlotSelector in Hub and Standalone (#2915) :: Viet Nguyen Duc
+- [`a1418e49`](http://github.com/seleniumhq/docker-selenium/commit/a1418e496f76a05998f2fb90246006cd18f879f2) - K8s: Helm template missing tolerations for keda patched jobs (#2912) :: Anwar
+- [`77bd816c`](http://github.com/seleniumhq/docker-selenium/commit/77bd816c3be93c3159b3f5c05d2a9af123c59598) - [KEDA] Selenium Grid: Add trigger param `overProvisionRatio` for ability to scale more than queue request (#2907) :: Viet Nguyen Duc
+- [`48779a6b`](http://github.com/seleniumhq/docker-selenium/commit/48779a6b3e0baafc5487d810e23af1294ac128bc) - Update docs for Helm config `nodeDrainAfterSessionCount` :: Viet Nguyen Duc
+- [`e193dd3d`](http://github.com/seleniumhq/docker-selenium/commit/e193dd3d9bfc6526cd4aa5dd7c47bcd774ff6926) - [ci] Update chart 0.45.2 changelog :: Selenium CI Bot
+
 ## :heavy_check_mark: selenium-grid-0.45.2
 
 - Chart is using image tag 4.34.0-20250717
