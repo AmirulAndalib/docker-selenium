@@ -1,3 +1,18 @@
+## :heavy_check_mark: selenium-grid-0.46.0
+
+- Chart is using image tag 4.35.0-20250808
+- Chart is tested on Kubernetes versions: v1.26.15,v1.27.16,v1.28.15,v1.29.15,v1.30.14,v1.31.11,v1.32.7,v1.33.3
+- Chart is tested on container runtime Docker versions: 26.1.4,27.4.1,27.5.1
+- Chart is tested on Helm versions: v3.11.3,v3.12.3,v3.13.3,v3.14.3,v3.15.4,v3.16.4,v3.17.4,v3.18.4
+- Chart is tested autoscaling capabilities with KEDA image tag: 2.17.2
+
+### Changed
+- [`2e8d7ec7`](http://github.com/seleniumhq/docker-selenium/commit/2e8d7ec78113f09eefb74bbb645b43b455a474e0) - [ci] Update tag 4.35.0-20250808 in docs and files :: Selenium CI Bot
+- [`6bad9778`](http://github.com/seleniumhq/docker-selenium/commit/6bad9778e6fa519891740437c43ab8ab1eb55135) - K8s: Update overProvisionRatio to use scalingModifiers instead scaler trigger param (#2930) :: Viet Nguyen Duc
+- [`676f1727`](http://github.com/seleniumhq/docker-selenium/commit/676f1727df09f7f96cda0aa823d98d3afa3a55b8) - Update Helm release kube-prometheus-stack to v76 (#2928) :: renovate[bot]
+- [`53bfa9a3`](http://github.com/seleniumhq/docker-selenium/commit/53bfa9a35b53f78337de91408f841faba5360974) - Update Helm release redis to v22 (#2927) :: renovate[bot]
+- [`7e140b06`](http://github.com/seleniumhq/docker-selenium/commit/7e140b069a9811956a145ccee55c6228cd55ba98) - [ci] Update chart 0.45.3 changelog :: Selenium CI Bot
+
 ## :heavy_check_mark: selenium-grid-0.45.3
 
 - Chart is using image tag 4.34.0-20250727
