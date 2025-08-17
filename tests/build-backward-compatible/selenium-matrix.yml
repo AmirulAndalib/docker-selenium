@@ -1,6 +1,4 @@
 matrix:
-  # List browser versions get from release notes https://www.selenium.dev/categories/releases/
-  # https://github.com/SeleniumHQ/selenium/releases
   selenium:
     nightly:
       BASE_RELEASE: nightly
@@ -12,190 +10,190 @@ matrix:
       BASE_VERSION: 4.35.0
       VERSION: 4.35.0
       BINDING_VERSION: 4.35.0
-      browser:
+      browser: []
     4.34.0:
       BASE_RELEASE: selenium-4.34.0
       BASE_VERSION: 4.34.0
       VERSION: 4.34.0
       BINDING_VERSION: 4.34.0
-      browser:
+      browser: []
     4.33.0:
       BASE_RELEASE: selenium-4.33.0
       BASE_VERSION: 4.33.0
       VERSION: 4.33.0
       BINDING_VERSION: 4.33.0
-      browser:
+      browser: []
     4.32.0:
       BASE_RELEASE: selenium-4.32.0
       BASE_VERSION: 4.32.0
       VERSION: 4.32.0
       BINDING_VERSION: 4.32.0
-      browser:
+      browser: []
     4.31.0:
       BASE_RELEASE: selenium-4.31.0
       BASE_VERSION: 4.31.0
       VERSION: 4.31.0
       BINDING_VERSION: 4.31.0
-      browser:
+      browser: []
     4.30.0:
       BASE_RELEASE: selenium-4.30.0
       BASE_VERSION: 4.30.0
       VERSION: 4.30.0
       BINDING_VERSION: 4.30.0
-      browser:
+      browser: []
     4.29.0:
       BASE_RELEASE: selenium-4.29.0
       BASE_VERSION: 4.29.0
       VERSION: 4.29.0
       BINDING_VERSION: 4.29.0
-      browser:
+      browser: []
     4.28.1:
       BASE_RELEASE: selenium-4.28.0
       BASE_VERSION: 4.28.1
       VERSION: 4.28.1
       BINDING_VERSION: 4.28.1
-      browser:
+      browser: []
     4.20.0:
       BASE_RELEASE: selenium-4.20.0
       BASE_VERSION: 4.20.0
       VERSION: 4.20.0
       BINDING_VERSION: 4.20.0
       browser:
-        - 124
-        - 123
-        - 122
+      - 124
+      - 123
+      - 122
     4.19.1:
       BASE_RELEASE: selenium-4.19.0
       BASE_VERSION: 4.19.1
       VERSION: 4.19.1
       BINDING_VERSION: 4.19.0
       browser:
-        - 123
-        - 122
-        - 121
+      - 123
+      - 122
+      - 121
     4.19.0:
       BASE_RELEASE: selenium-4.19.0
       BASE_VERSION: 4.19.0
       VERSION: 4.19.0
       BINDING_VERSION: 4.19.0
       browser:
-        - 123
-        - 122
-        - 121
+      - 123
+      - 122
+      - 121
     4.18.1:
       BASE_RELEASE: selenium-4.18.0
       BASE_VERSION: 4.18.1
       VERSION: 4.18.1
       BINDING_VERSION: 4.18.1
       browser:
-        - 122
-        - 121
-        - 120
+      - 122
+      - 121
+      - 120
     4.18.0:
       BASE_RELEASE: selenium-4.18.0
       BASE_VERSION: 4.18.0
       VERSION: 4.18.0
       BINDING_VERSION: 4.18.0
       browser:
-        - 122
-        - 121
-        - 120
+      - 122
+      - 121
+      - 120
     4.17.0:
       BASE_RELEASE: selenium-4.17.0
       BASE_VERSION: 4.17.0
       VERSION: 4.17.0
       BINDING_VERSION: 4.17.2
       browser:
-        - 121
-        - 120
-        - 119
+      - 121
+      - 120
+      - 119
     4.16.1:
       BASE_RELEASE: selenium-4.16.0
       BASE_VERSION: 4.16.1
       VERSION: 4.16.1
       BINDING_VERSION: 4.16.0
       browser:
-        - 120
-        - 119
-        - 118
+      - 120
+      - 119
+      - 118
     4.16.0:
       BASE_RELEASE: selenium-4.16.0
       BASE_VERSION: 4.16.0
       VERSION: 4.16.0
       BINDING_VERSION: 4.16.0
       browser:
-        - 120
-        - 119
-        - 118
+      - 120
+      - 119
+      - 118
     4.15.0:
       BASE_RELEASE: selenium-4.15.0
       BASE_VERSION: 4.15.0
       VERSION: 4.15.0
       BINDING_VERSION: 4.15.2
       browser:
-        - 119
-        - 118
-        - 117
+      - 119
+      - 118
+      - 117
     4.14.1:
       BASE_RELEASE: selenium-4.14.0
       BASE_VERSION: 4.14.1
       VERSION: 4.14.1
       BINDING_VERSION: 4.14.0
       browser:
-        - 118
-        - 117
-        - 116
+      - 118
+      - 117
+      - 116
     4.14.0:
       BASE_RELEASE: selenium-4.14.0
       BASE_VERSION: 4.14.0
       VERSION: 4.14.0
       BINDING_VERSION: 4.14.0
       browser:
-        - 118
-        - 117
-        - 116
+      - 118
+      - 117
+      - 116
     4.13.0:
       BASE_RELEASE: selenium-4.13.0
       BASE_VERSION: 4.13.0
       VERSION: 4.13.0
       BINDING_VERSION: 4.13.0
       browser:
-        - 117
-        - 116
-        - 115
+      - 117
+      - 116
+      - 115
     4.12.1:
       BASE_RELEASE: selenium-4.12.0
       BASE_VERSION: 4.12.1
       VERSION: 4.12.1
       BINDING_VERSION: 4.12.0
       browser:
-        - 116
-        - 115
-        - 114
+      - 116
+      - 115
+      - 114
     4.12.0:
       BASE_RELEASE: selenium-4.12.0
       BASE_VERSION: 4.12.0
       VERSION: 4.12.0
       BINDING_VERSION: 4.12.0
       browser:
-        - 116
-        - 115
-        - 114
+      - 116
+      - 115
+      - 114
     4.11.0:
       BASE_RELEASE: selenium-4.11.0
       BASE_VERSION: 4.11.0
       VERSION: 4.11.0
       BINDING_VERSION: 4.11.2
       browser:
-        - 115
-        - 114
-        - 113
+      - 115
+      - 114
+      - 113
     4.10.0:
       BASE_RELEASE: selenium-4.10.0
       BASE_VERSION: 4.10.0
       VERSION: 4.10.0
       BINDING_VERSION: 4.10.0
       browser:
-        - 114
-        - 113
-        - 112
+      - 114
+      - 113
+      - 112

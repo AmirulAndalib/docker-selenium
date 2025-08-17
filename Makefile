@@ -96,6 +96,9 @@ update_list_env_vars:
 	python3 -m pip install -r tests/requirements.txt ; \
 	python3 scripts/generate_list_env_vars/extract_env.py
 
+update_selenium_version_matrix:
+	python3 tests/build-backward-compatible/add_selenium_version.py $(BASE_VERSION)
+
 lint_readme_charts: generate_readme_charts
 	git diff --stat --exit-code ; \
 	EXIT_CODE=$$? ; \
