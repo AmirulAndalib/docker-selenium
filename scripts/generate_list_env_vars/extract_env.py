@@ -1,7 +1,9 @@
 import os
 import re
-import yaml
 from collections import OrderedDict
+
+import yaml
+
 
 def extract_variables_from_shell_scripts(directory_path):
     variables = OrderedDict()

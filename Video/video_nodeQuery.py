@@ -7,6 +7,7 @@ import sys
 
 default_trim_pattern = "[^a-zA-Z0-9-_]"
 
+
 def main() -> None:
     """
     Process video recording configuration based on session capabilities.

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import sys
-import os
 import base64
-from datetime import datetime
-from datetime import timezone
+import os
+import sys
+from datetime import datetime, timezone
+
 import requests
 
 
@@ -74,7 +74,7 @@ def validate_endpoint(endpoint, graphql_endpoint=False, connection_timeout=5, re
                 headers=headers,
                 json=data,
                 timeout=(connection_timeout, read_timeout),
-                verify=False  # Equivalent to curl's -k flag
+                verify=False,  # Equivalent to curl's -k flag
             )
         else:
             # Regular endpoint check
@@ -82,14 +82,15 @@ def validate_endpoint(endpoint, graphql_endpoint=False, connection_timeout=5, re
                 endpoint,
                 headers=headers,
                 timeout=(connection_timeout, read_timeout),
-                verify=False  # Equivalent to curl's -k flag
+                verify=False,  # Equivalent to curl's -k flag
             )
 
         status_code = response.status_code
 
     except requests.exceptions.Timeout:
         print(
-            f"{get_timestamp()} [{process_name}] - Endpoint {endpoint} timed out (connection: {connection_timeout}s, read: {read_timeout}s)")
+            f"{get_timestamp()} [{process_name}] - Endpoint {endpoint} timed out (connection: {connection_timeout}s, read: {read_timeout}s)"
+        )
         return False
     except requests.exceptions.ConnectionError:
         print(f"{get_timestamp()} [{process_name}] - Failed to connect to endpoint {endpoint}")
@@ -104,7 +105,8 @@ def validate_endpoint(endpoint, graphql_endpoint=False, connection_timeout=5, re
         return False
     elif status_code == 401:
         print(
-            f"{get_timestamp()} [{process_name}] - Endpoint {endpoint} requires authentication - status code: {status_code}. Please provide valid credentials via SE_ROUTER_USERNAME and SE_ROUTER_PASSWORD environment variables.")
+            f"{get_timestamp()} [{process_name}] - Endpoint {endpoint} requires authentication - status code: {status_code}. Please provide valid credentials via SE_ROUTER_USERNAME and SE_ROUTER_PASSWORD environment variables."
+        )
         return False
     elif status_code != 200:
         print(f"{get_timestamp()} [{process_name}] - Endpoint {endpoint} is not available - status code: {status_code}")

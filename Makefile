@@ -36,6 +36,7 @@ KEDA_TAG_VERSION := $(or $(KEDA_TAG_VERSION),$(KEDA_TAG_VERSION),2.17.2-selenium
 KEDA_BASED_NAME := $(or $(KEDA_BASED_NAME),$(KEDA_BASED_NAME),ndviet)
 KEDA_BASED_TAG := $(or $(KEDA_BASED_TAG),$(KEDA_BASED_TAG),2.17.2-selenium-grid-20250721)
 TEST_PATCHED_KEDA := $(or $(TEST_PATCHED_KEDA),$(TEST_PATCHED_KEDA),false)
+TRACING_EXPORTER_ENDPOINT := $(or $(TRACING_EXPORTER_ENDPOINT),$(TRACING_EXPORTER_ENDPOINT),http://\$$KUBERNETES_NODE_HOST_IP:4317)
 
 all: hub \
 	distributor \
@@ -75,24 +76,19 @@ set_containerd_image_store:
 	docker version -f '{{.Server.Experimental}}'
 	docker info -f '{{ .DriverStatus }}'
 
-format_shell_scripts:
-	sudo apt-get update -qq || true ; \
-  sudo apt-get install -yq shfmt || true ; \
-  shfmt -l -w -d $${PWD}/*.sh $${PWD}/**/*.sh $$PWD/**.sh $$PWD/**/generate_** $$PWD/**/wrap_* ; \
-  git diff --stat --exit-code ; \
-  EXIT_CODE=$$? ; \
-  if [ $$EXIT_CODE -ne 0 ]; then \
-		echo "Some shell scripts are not formatted. Please run 'make format_shell_scripts' to format and update them." ; \
-		exit $$EXIT_CODE ; \
-	fi ; \
-  exit $$EXIT_CODE
+format_shell_scripts: install_python_deps
+	shfmt -l -w -d $${PWD}/*.sh $${PWD}/**/*.sh $$PWD/**.sh $$PWD/**/generate_** $$PWD/**/wrap_*
+
+format_makefile: install_python_deps
+	python3 -m mbake format Makefile
+	python3 -m mbake validate Makefile
 
 install_python_deps:
 	python3 -m pip install -r tests/requirements.txt --break-system-packages
 
 format_python_scripts: install_python_deps
-	python3 -m isort tests/ ; \
-    python3 -m black --line-length=120 --skip-string-normalization tests/
+	python3 -m isort . ; \
+	python3 -m black --line-length=120 --skip-string-normalization .
 
 generate_readme_charts:
 	if [ ! -f $$HOME/go/bin/helm-docs ] ; then \
@@ -112,12 +108,12 @@ update_browser_versions_matrix: update_selenium_version_matrix
 	python3 tests/build-backward-compatible/fetch_version.py ; \
 	python3 tests/build-backward-compatible/update_workflow_versions.py
 
-lint_readme_charts: generate_readme_charts
+lint_format_scripts: format_makefile format_shell_scripts format_python_scripts generate_readme_charts
 	git diff --stat --exit-code ; \
 	EXIT_CODE=$$? ; \
 	if [ $$EXIT_CODE -ne 0 ]; then \
-			echo "New changes in chart. Please run 'make generate_readme_charts' to update them." ; \
-			exit $$EXIT_CODE ; \
+		echo "Scripts might get formatted. Run 'make lint_format_scripts' once after adding something new." ; \
+		exit $$EXIT_CODE ; \
 	fi ; \
   exit $$EXIT_CODE
 
@@ -176,14 +172,14 @@ node_base: base video
 
 chrome_only:
 	case "$(PLATFORMS)" in \
-    *linux/amd64*) \
-      echo "Google Chrome is only supported on linux/amd64" \
-      && cd ./NodeChrome && docker buildx build --platform linux/amd64 $(BUILD_ARGS) $(FROM_IMAGE_ARGS) -t $(NAME)/node-chrome:$(TAG_VERSION) . \
-      ;; \
-    *) \
-       echo "Google Chrome doesn't support platform $(PLATFORMS)" ; \
-      ;; \
-  esac
+		*linux/amd64*) \
+		echo "Google Chrome is only supported on linux/amd64" \
+		&& cd ./NodeChrome && docker buildx build --platform linux/amd64 $(BUILD_ARGS) $(FROM_IMAGE_ARGS) -t $(NAME)/node-chrome:$(TAG_VERSION) . \
+		;; \
+		*) \
+		echo "Google Chrome doesn't support platform $(PLATFORMS)" ; \
+		;; \
+	esac
 
 chrome: node_base chrome_only
 
@@ -198,14 +194,14 @@ chromium: node_base
 
 edge_only:
 	case "$(PLATFORMS)" in \
-    *linux/amd64*) \
-      echo "Microsoft Edge is only supported on linux/amd64" \
-      && cd ./NodeEdge && docker buildx build --platform linux/amd64 $(BUILD_ARGS) $(FROM_IMAGE_ARGS) -t $(NAME)/node-edge:$(TAG_VERSION) . \
-      ;; \
-    *) \
-       echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
-      ;; \
-  esac
+		*linux/amd64*) \
+		echo "Microsoft Edge is only supported on linux/amd64" \
+		&& cd ./NodeEdge && docker buildx build --platform linux/amd64 $(BUILD_ARGS) $(FROM_IMAGE_ARGS) -t $(NAME)/node-edge:$(TAG_VERSION) . \
+		;; \
+		*) \
+		echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
+		;; \
+	esac
 
 edge: node_base edge_only
 
@@ -247,14 +243,14 @@ standalone_firefox_beta: firefox_beta
 
 standalone_chrome_only:
 	case "$(PLATFORMS)" in \
-    *linux/amd64*) \
-			echo "Google Chrome is only supported on linux/amd64" \
-			&& cd ./Standalone && docker buildx build --platform linux/amd64 $(BUILD_ARGS) $(FROM_IMAGE_ARGS) --build-arg BASE=node-chrome -t $(NAME)/standalone-chrome:$(TAG_VERSION) . \
-      ;; \
-    *) \
-       echo "Google Chrome doesn't support platform $(PLATFORMS)" ; \
-      ;; \
-  esac
+		*linux/amd64*) \
+		echo "Google Chrome is only supported on linux/amd64" \
+		&& cd ./Standalone && docker buildx build --platform linux/amd64 $(BUILD_ARGS) $(FROM_IMAGE_ARGS) --build-arg BASE=node-chrome -t $(NAME)/standalone-chrome:$(TAG_VERSION) . \
+		;; \
+		*) \
+		echo "Google Chrome doesn't support platform $(PLATFORMS)" ; \
+		;; \
+	esac
 
 standalone_chrome: chrome standalone_chrome_only
 
@@ -271,14 +267,14 @@ standalone_chromium: chromium
 
 standalone_edge_only:
 	case "$(PLATFORMS)" in \
-    *linux/amd64*) \
-      echo "Microsoft Edge is only supported on linux/amd64" \
-      && cd ./Standalone && docker buildx build --platform linux/amd64 $(BUILD_ARGS) $(FROM_IMAGE_ARGS) --build-arg BASE=node-edge -t $(NAME)/standalone-edge:$(TAG_VERSION) . \
-      ;; \
-    *) \
-       echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
-      ;; \
-  esac
+		*linux/amd64*) \
+		echo "Microsoft Edge is only supported on linux/amd64" \
+		&& cd ./Standalone && docker buildx build --platform linux/amd64 $(BUILD_ARGS) $(FROM_IMAGE_ARGS) --build-arg BASE=node-edge -t $(NAME)/standalone-edge:$(TAG_VERSION) . \
+		;; \
+		*) \
+		echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
+		;; \
+	esac
 
 standalone_edge: edge standalone_edge_only
 
@@ -424,9 +420,9 @@ tag_latest:
 		docker tag $(NAME)/node-edge:$(TAG_VERSION) $(NAME)/node-edge:latest && \
 		docker tag $(NAME)/standalone-edge:$(TAG_VERSION) $(NAME)/standalone-edge:latest \
 		;; \
-	*) \
-	    echo "Tagged other images, except Chrome and Edge Node/Standalone don't support platform $(PLATFORMS)" ; \
-	    ;; \
+		*) \
+		echo "Tagged other images, except Chrome and Edge Node/Standalone don't support platform $(PLATFORMS)" ; \
+		;; \
 	esac
 
 release_ffmpeg_latest:
@@ -484,9 +480,9 @@ tag_nightly:
 		docker tag $(NAME)/node-edge:$(TAG_VERSION) $(NAME)/node-edge:nightly && \
 		docker tag $(NAME)/standalone-edge:$(TAG_VERSION) $(NAME)/standalone-edge:nightly \
 		;; \
-	*) \
-	    echo "Tagged other images, except Chrome and Edge Node/Standalone don't support platform $(PLATFORMS)" ; \
-	    ;; \
+		*) \
+		echo "Tagged other images, except Chrome and Edge Node/Standalone don't support platform $(PLATFORMS)" ; \
+		;; \
 	esac
 
 release_nightly: release_grid_scaler_nightly
@@ -681,85 +677,85 @@ release: tag_major_minor release_grid_scaler
 	docker push $(NAME)/video:$(FFMPEG_TAG_VERSION)-$(BUILD_DATE)
 
 test: test_chrome \
- test_chrome_standalone \
- test_chrome_standalone_java \
- test_chromium \
- test_chromium_standalone \
- test_chromium_standalone_java \
- test_firefox \
- test_firefox_standalone \
- test_firefox_standalone_java \
- test_edge \
- test_edge_standalone \
- test_edge_standalone_java \
- test_node_all_browsers \
- test_standalone_all_browsers
+	test_chrome_standalone \
+	test_chrome_standalone_java \
+	test_chromium \
+	test_chromium_standalone \
+	test_chromium_standalone_java \
+	test_firefox \
+	test_firefox_standalone \
+	test_firefox_standalone_java \
+	test_edge \
+	test_edge_standalone \
+	test_edge_standalone_java \
+	test_node_all_browsers \
+	test_standalone_all_browsers
 
 test_chrome:
 	case "$(PLATFORMS)" in \
-    *linux/amd64*) \
-			echo "Google Chrome is only supported on linux/amd64" \
-			&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh NodeChrome \
-      ;; \
-    *) \
-       echo "Google Chrome doesn't support platform $(PLATFORMS)" ; \
-      ;; \
-  esac
+		*linux/amd64*) \
+		echo "Google Chrome is only supported on linux/amd64" \
+		&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh NodeChrome \
+		;; \
+		*) \
+		echo "Google Chrome doesn't support platform $(PLATFORMS)" ; \
+		;; \
+	esac
 
 test_chrome_standalone:
 	case "$(PLATFORMS)" in \
-    *linux/amd64*) \
-			echo "Google Chrome is only supported on linux/amd64" \
-			&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh StandaloneChrome \
-      ;; \
-    *) \
-       echo "Google Chrome doesn't support platform $(PLATFORMS)" ; \
-      ;; \
-  esac
+		*linux/amd64*) \
+		echo "Google Chrome is only supported on linux/amd64" \
+		&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh StandaloneChrome \
+		;; \
+		*) \
+		echo "Google Chrome doesn't support platform $(PLATFORMS)" ; \
+		;; \
+	esac
 
 test_chrome_standalone_java:
 	case "$(PLATFORMS)" in \
-    *linux/amd64*) \
-			echo "Google Chrome is only supported on linux/amd64" \
-			&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/SeleniumJavaTests/bootstrap_java.sh chrome standalone-chrome \
-      ;; \
-    *) \
-       echo "Google Chrome doesn't support platform $(PLATFORMS)" ; \
-      ;; \
-  esac
+		*linux/amd64*) \
+		echo "Google Chrome is only supported on linux/amd64" \
+		&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/SeleniumJavaTests/bootstrap_java.sh chrome standalone-chrome \
+		;; \
+		*) \
+		echo "Google Chrome doesn't support platform $(PLATFORMS)" ; \
+		;; \
+	esac
 
 test_edge:
 	case "$(PLATFORMS)" in \
-    *linux/amd64*) \
-			echo "Microsoft Edge is only supported on linux/amd64" \
-			&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh NodeEdge \
-      ;; \
-    *) \
-       echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
-      ;; \
-  esac
+		*linux/amd64*) \
+		echo "Microsoft Edge is only supported on linux/amd64" \
+		&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh NodeEdge \
+		;; \
+		*) \
+		echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
+		;; \
+	esac
 
 test_edge_standalone:
 	case "$(PLATFORMS)" in \
-    *linux/amd64*) \
-			echo "Microsoft Edge is only supported on linux/amd64" \
-			&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh StandaloneEdge \
-      ;; \
-    *) \
-       echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
-      ;; \
-  esac
+		*linux/amd64*) \
+		echo "Microsoft Edge is only supported on linux/amd64" \
+		&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh StandaloneEdge \
+		;; \
+		*) \
+		echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
+		;; \
+	esac
 
 test_edge_standalone_java:
 	case "$(PLATFORMS)" in \
-    *linux/amd64*) \
-			echo "Microsoft Edge is only supported on linux/amd64" \
-			&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/SeleniumJavaTests/bootstrap_java.sh edge standalone-edge \
-      ;; \
-    *) \
-       echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
-      ;; \
-  esac
+		*linux/amd64*) \
+		echo "Microsoft Edge is only supported on linux/amd64" \
+		&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/SeleniumJavaTests/bootstrap_java.sh edge standalone-edge \
+		;; \
+		*) \
+		echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
+		;; \
+	esac
 
 test_firefox_download_lang_packs:
 	FIREFOX_VERSION=$(or $(FIREFOX_VERSION), $$(curl -sk https://product-details.mozilla.org/1.0/firefox_versions.json | jq -r '.LATEST_FIREFOX_VERSION')) ; \
@@ -786,28 +782,28 @@ test_chromium_standalone_java:
 
 test_node_all_browsers:
 	case "$(PLATFORMS)" in \
-    *linux/amd64*) \
-			echo "Microsoft Edge is only supported on linux/amd64" \
-			&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh NodeAllEdge \
-      ;; \
-    *) \
-       echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
-      ;; \
-  esac
+		*linux/amd64*) \
+		echo "Microsoft Edge is only supported on linux/amd64" \
+		&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh NodeAllEdge \
+		;; \
+		*) \
+		echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
+		;; \
+	esac
 	PLATFORMS=$(PLATFORMS) VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh NodeAllChrome
 	PLATFORMS=$(PLATFORMS) VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true \
 	./tests/bootstrap.sh NodeAllFirefox
 
 test_standalone_all_browsers:
 	case "$(PLATFORMS)" in \
-    *linux/amd64*) \
-			echo "Microsoft Edge is only supported on linux/amd64" \
-			&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh StandaloneAllEdge \
-      ;; \
-    *) \
-       echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
-      ;; \
-  esac
+		*linux/amd64*) \
+		echo "Microsoft Edge is only supported on linux/amd64" \
+		&& PLATFORMS=linux/amd64 VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh StandaloneAllEdge \
+		;; \
+		*) \
+		echo "Microsoft Edge doesn't support platform $(PLATFORMS)" ; \
+		;; \
+	esac
 	PLATFORMS=$(PLATFORMS) VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh StandaloneAllFirefox
 	PLATFORMS=$(PLATFORMS) VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) BASE_RELEASE=$(BASE_RELEASE) BASE_VERSION=$(BASE_VERSION) BINDING_VERSION=$(BINDING_VERSION) SKIP_BUILD=true ./tests/bootstrap.sh StandaloneAllChrome
 
@@ -816,25 +812,25 @@ test_parallel: hub chrome firefox edge chromium video
 	sudo rm -rf ./tests/videos; mkdir -p ./tests/videos
 	sudo cp -r ./charts/selenium-grid/certs ./tests/videos
 	for node in DeploymentAutoscaling JobAutoscaling ; do \
-			cd ./tests || true ; \
-			echo TAG=$(TAG_VERSION) > .env ; \
-			echo VIDEO_TAG=$(FFMPEG_TAG_VERSION)-$(BUILD_DATE) >> .env ; \
-			echo TEST_DELAY_AFTER_TEST=$(or $(TEST_DELAY_AFTER_TEST), 2) >> .env ; \
-			echo TEST_DRAIN_AFTER_SESSION_COUNT=$(or $(TEST_DRAIN_AFTER_SESSION_COUNT), 2) >> .env ; \
-			echo TEST_PARALLEL_HARDENING=$(or $(TEST_PARALLEL_HARDENING), "true") >> .env ; \
-			echo TEST_PARALLEL_COUNT=$(or $(TEST_PARALLEL_COUNT), 5) >> .env ; \
-			echo HUB_CHECKS_INTERVAL=$(or $(HUB_CHECKS_INTERVAL), 45) >> .env ; \
-			echo LOG_LEVEL=$(or $(LOG_LEVEL), "INFO") >> .env ; \
-			echo REQUEST_TIMEOUT=$(or $(REQUEST_TIMEOUT), 600) >> .env ; \
-			echo NODE=$$node >> .env ; \
-			echo UID=$$(id -u) >> .env ; \
-			echo BINDING_VERSION=$(BINDING_VERSION) >> .env ; \
-			echo BASE_VERSION=$(BASE_VERSION) >> .env ; \
-			if [ "$(PLATFORMS)" = "linux/amd64" ]; then \
-					echo NODE_CHROME=chrome >> .env ; \
-			else \
-					echo NODE_CHROME=chromium >> .env ; \
-			fi; \
+		cd ./tests || true ; \
+		echo TAG=$(TAG_VERSION) > .env ; \
+		echo VIDEO_TAG=$(FFMPEG_TAG_VERSION)-$(BUILD_DATE) >> .env ; \
+		echo TEST_DELAY_AFTER_TEST=$(or $(TEST_DELAY_AFTER_TEST), 2) >> .env ; \
+		echo TEST_DRAIN_AFTER_SESSION_COUNT=$(or $(TEST_DRAIN_AFTER_SESSION_COUNT), 2) >> .env ; \
+		echo TEST_PARALLEL_HARDENING=$(or $(TEST_PARALLEL_HARDENING), "true") >> .env ; \
+		echo TEST_PARALLEL_COUNT=$(or $(TEST_PARALLEL_COUNT), 5) >> .env ; \
+		echo HUB_CHECKS_INTERVAL=$(or $(HUB_CHECKS_INTERVAL), 45) >> .env ; \
+		echo LOG_LEVEL=$(or $(LOG_LEVEL), "INFO") >> .env ; \
+		echo REQUEST_TIMEOUT=$(or $(REQUEST_TIMEOUT), 600) >> .env ; \
+		echo NODE=$$node >> .env ; \
+		echo UID=$$(id -u) >> .env ; \
+		echo BINDING_VERSION=$(BINDING_VERSION) >> .env ; \
+		echo BASE_VERSION=$(BASE_VERSION) >> .env ; \
+		if [ "$(PLATFORMS)" = "linux/amd64" ]; then \
+			echo NODE_CHROME=chrome >> .env ; \
+		else \
+			echo NODE_CHROME=chromium >> .env ; \
+		fi; \
 			echo TEST_PLATFORMS=$(PLATFORMS) >> .env ; \
 			echo SELENIUM_GRID_PROTOCOL=https >> .env ; \
 			echo CHART_CERT_PATH=$$(readlink -f ./videos/certs/tls.crt) >> .env ; \
@@ -866,46 +862,46 @@ test_video: video hub chrome firefox edge chromium
 		make test_firefox_download_lang_packs ; \
 	fi ; \
 	if [ "$(PLATFORMS)" = "linux/amd64" ]; then \
-			list_nodes="$${list_of_tests_amd64}" ; \
+		list_nodes="$${list_of_tests_amd64}" ; \
 	else \
-			list_nodes="$${list_of_tests_arm64}" ; \
+		list_nodes="$${list_of_tests_arm64}" ; \
 	fi; \
 	for node in $${list_nodes}; do \
-			cd ./tests || true ; \
-			echo VIDEO_TAG=$(FFMPEG_TAG_VERSION)-$(BUILD_DATE) > .env ; \
-			echo TAG=$(TAG_VERSION) >> .env ; \
-			echo NODE=$$node >> .env ; \
-			echo UID=$$(id -u) >> .env ; \
-			echo BINDING_VERSION=$(BINDING_VERSION) >> .env ; \
-			echo BASE_VERSION=$(BASE_VERSION) >> .env ; \
-			echo TEST_DELAY_AFTER_TEST=$(or $(TEST_DELAY_AFTER_TEST), 2) >> .env ; \
-			echo HUB_CHECKS_INTERVAL=$(or $(HUB_CHECKS_INTERVAL), 45) >> .env ; \
-			echo SELENIUM_ENABLE_MANAGED_DOWNLOADS=$(or $(SELENIUM_ENABLE_MANAGED_DOWNLOADS), "true") >> .env ; \
-			echo TEST_FIREFOX_INSTALL_LANG_PACKAGE=$${TEST_FIREFOX_INSTALL_LANG_PACKAGE} >> .env ; \
-			echo BASIC_AUTH_USERNAME=$(or $(BASIC_AUTH_USERNAME), "admin") >> .env ; \
-			echo BASIC_AUTH_PASSWORD=$(or $(BASIC_AUTH_PASSWORD), "admin") >> .env ; \
-			echo SUB_PATH=$(or $(SUB_PATH), "/selenium") >> .env ; \
-			echo TEST_ADD_CAPS_RECORD_VIDEO=$(or $(TEST_ADD_CAPS_RECORD_VIDEO), "true") >> .env ; \
-			if [ $$node = "NodeChrome" ] ; then \
-					echo BROWSER=chrome >> .env ; \
-					echo VIDEO_FILE_NAME=$${VIDEO_FILE_NAME:-"chrome_video.mp4"} >> .env ; \
-					echo VIDEO_FILE_NAME_SUFFIX=$${VIDEO_FILE_NAME_SUFFIX:-"true"} >> .env ; \
-			fi ; \
+		cd ./tests || true ; \
+		echo VIDEO_TAG=$(FFMPEG_TAG_VERSION)-$(BUILD_DATE) > .env ; \
+		echo TAG=$(TAG_VERSION) >> .env ; \
+		echo NODE=$$node >> .env ; \
+		echo UID=$$(id -u) >> .env ; \
+		echo BINDING_VERSION=$(BINDING_VERSION) >> .env ; \
+		echo BASE_VERSION=$(BASE_VERSION) >> .env ; \
+		echo TEST_DELAY_AFTER_TEST=$(or $(TEST_DELAY_AFTER_TEST), 2) >> .env ; \
+		echo HUB_CHECKS_INTERVAL=$(or $(HUB_CHECKS_INTERVAL), 45) >> .env ; \
+		echo SELENIUM_ENABLE_MANAGED_DOWNLOADS=$(or $(SELENIUM_ENABLE_MANAGED_DOWNLOADS), "true") >> .env ; \
+		echo TEST_FIREFOX_INSTALL_LANG_PACKAGE=$${TEST_FIREFOX_INSTALL_LANG_PACKAGE} >> .env ; \
+		echo BASIC_AUTH_USERNAME=$(or $(BASIC_AUTH_USERNAME), "admin") >> .env ; \
+		echo BASIC_AUTH_PASSWORD=$(or $(BASIC_AUTH_PASSWORD), "admin") >> .env ; \
+		echo SUB_PATH=$(or $(SUB_PATH), "/selenium") >> .env ; \
+		echo TEST_ADD_CAPS_RECORD_VIDEO=$(or $(TEST_ADD_CAPS_RECORD_VIDEO), "true") >> .env ; \
+		if [ $$node = "NodeChrome" ] ; then \
+			echo BROWSER=chrome >> .env ; \
+			echo VIDEO_FILE_NAME=$${VIDEO_FILE_NAME:-"chrome_video.mp4"} >> .env ; \
+			echo VIDEO_FILE_NAME_SUFFIX=$${VIDEO_FILE_NAME_SUFFIX:-"true"} >> .env ; \
+		fi ; \
 			if [ $$node = "NodeChromium" ] ; then \
-					echo BROWSER=chromium >> .env ; \
-					echo VIDEO_FILE_NAME=$${VIDEO_FILE_NAME:-"chromium_video.mp4"} >> .env ; \
-					echo VIDEO_FILE_NAME_SUFFIX=$${VIDEO_FILE_NAME_SUFFIX:-"true"} >> .env ; \
-					echo SELENIUM_GRID_TEST_HEADLESS=true >> .env ; \
+				echo BROWSER=chromium >> .env ; \
+				echo VIDEO_FILE_NAME=$${VIDEO_FILE_NAME:-"chromium_video.mp4"} >> .env ; \
+				echo VIDEO_FILE_NAME_SUFFIX=$${VIDEO_FILE_NAME_SUFFIX:-"true"} >> .env ; \
+				echo SELENIUM_GRID_TEST_HEADLESS=true >> .env ; \
 			fi ; \
 			if [ $$node = "NodeEdge" ] ; then \
-					echo BROWSER=edge >> .env ; \
-					echo VIDEO_FILE_NAME=$${VIDEO_FILE_NAME:-"edge_video.mp4"} >> .env ; \
-					echo VIDEO_FILE_NAME_SUFFIX=$${VIDEO_FILE_NAME_SUFFIX:-"false"} >> .env ; \
+				echo BROWSER=edge >> .env ; \
+				echo VIDEO_FILE_NAME=$${VIDEO_FILE_NAME:-"edge_video.mp4"} >> .env ; \
+				echo VIDEO_FILE_NAME_SUFFIX=$${VIDEO_FILE_NAME_SUFFIX:-"false"} >> .env ; \
 			fi ; \
 			if [ $$node = "NodeFirefox" ] ; then \
-					echo BROWSER=firefox >> .env ; \
-					echo VIDEO_FILE_NAME=$${VIDEO_FILE_NAME:-"firefox_video.mp4"} >> .env ; \
-					echo VIDEO_FILE_NAME_SUFFIX=$${VIDEO_FILE_NAME_SUFFIX:-"true"} >> .env ; \
+				echo BROWSER=firefox >> .env ; \
+				echo VIDEO_FILE_NAME=$${VIDEO_FILE_NAME:-"firefox_video.mp4"} >> .env ; \
+				echo VIDEO_FILE_NAME_SUFFIX=$${VIDEO_FILE_NAME_SUFFIX:-"true"} >> .env ; \
 			fi ; \
 			DOCKER_DEFAULT_PLATFORM=$(PLATFORMS) docker compose -f $${docker_compose_file} up --remove-orphans --build  --exit-code-from tests ; \
 	done
@@ -914,53 +910,53 @@ test_video: video hub chrome firefox edge chromium
 test_node_relay: hub node_base standalone_firefox
 	sudo rm -rf ./tests/tests ./tests/videos; mkdir -p ./tests/videos ; \
 	if [ "$(PLATFORMS)" = "linux/amd64" ]; then \
-			list_nodes="Android NodeFirefox" ; \
+		list_nodes="Android NodeFirefox" ; \
 	else \
-			list_nodes="NodeFirefox" ; \
+		list_nodes="NodeFirefox" ; \
 	fi; \
 	for node in $${list_nodes} ; do \
-			cd ./tests || true ; \
-			echo TAG=$(TAG_VERSION) > .env ; \
-			echo NAMESPACE=$(NAME) >> .env ; \
-			echo LOG_LEVEL=$(or $(LOG_LEVEL), "INFO") >> .env ; \
-			echo REQUEST_TIMEOUT=$(or $(REQUEST_TIMEOUT), 300) >> .env ; \
-			echo SESSION_TIMEOUT=$(or $(SESSION_TIMEOUT), 300) >> .env ; \
-			echo ANDROID_BASED_NAME=$(or $(ANDROID_BASED_NAME),budtmo) >> .env ; \
-			echo ANDROID_BASED_IMAGE=$(or $(ANDROID_BASED_IMAGE),docker-android) >> .env ; \
-			echo ANDROID_BASED_TAG=$(or $(ANDROID_BASED_TAG),emulator_14.0) >> .env ; \
-			echo ANDROID_PLATFORM_API=$(or $(ANDROID_PLATFORM_API),14) >> .env ; \
-			echo TEST_DELAY_AFTER_TEST=$(or $(TEST_DELAY_AFTER_TEST), 0) >> .env ; \
-			echo NODE=$$node >> .env ; \
-			echo TEST_NODE_RELAY=$$node >> .env ; \
-			echo UID=$$(id -u) >> .env ; \
-			echo BINDING_VERSION=$(BINDING_VERSION) >> .env ; \
-			echo BASE_VERSION=$(BASE_VERSION) >> .env ; \
-			if [ $$node = "Android" ] ; then \
-					echo BROWSER=firefox >> .env \
-					&& echo BROWSER_NAME=firefox >> .env ; \
-			fi ; \
+		cd ./tests || true ; \
+		echo TAG=$(TAG_VERSION) > .env ; \
+		echo NAMESPACE=$(NAME) >> .env ; \
+		echo LOG_LEVEL=$(or $(LOG_LEVEL), "INFO") >> .env ; \
+		echo REQUEST_TIMEOUT=$(or $(REQUEST_TIMEOUT), 300) >> .env ; \
+		echo SESSION_TIMEOUT=$(or $(SESSION_TIMEOUT), 300) >> .env ; \
+		echo ANDROID_BASED_NAME=$(or $(ANDROID_BASED_NAME),budtmo) >> .env ; \
+		echo ANDROID_BASED_IMAGE=$(or $(ANDROID_BASED_IMAGE),docker-android) >> .env ; \
+		echo ANDROID_BASED_TAG=$(or $(ANDROID_BASED_TAG),emulator_14.0) >> .env ; \
+		echo ANDROID_PLATFORM_API=$(or $(ANDROID_PLATFORM_API),14) >> .env ; \
+		echo TEST_DELAY_AFTER_TEST=$(or $(TEST_DELAY_AFTER_TEST), 0) >> .env ; \
+		echo NODE=$$node >> .env ; \
+		echo TEST_NODE_RELAY=$$node >> .env ; \
+		echo UID=$$(id -u) >> .env ; \
+		echo BINDING_VERSION=$(BINDING_VERSION) >> .env ; \
+		echo BASE_VERSION=$(BASE_VERSION) >> .env ; \
+		if [ $$node = "Android" ] ; then \
+			echo BROWSER=firefox >> .env \
+			&& echo BROWSER_NAME=firefox >> .env ; \
+		fi ; \
 			if [ $$node = "NodeChrome" ] ; then \
-					echo BROWSER=chrome >> .env \
-					&& BROWSER_NAMEchrome >> .env ; \
+				echo BROWSER=chrome >> .env \
+				&& BROWSER_NAMEchrome >> .env ; \
 			fi ; \
 			if [ $$node = "NodeChromium" ] ; then \
-					echo BROWSER=chromium >> .env \
-					&& echo BROWSER_NAME=chrome >> .env ; \
-					echo SELENIUM_GRID_TEST_HEADLESS=true >> .env ; \
+				echo BROWSER=chromium >> .env \
+				&& echo BROWSER_NAME=chrome >> .env ; \
+				echo SELENIUM_GRID_TEST_HEADLESS=true >> .env ; \
 			fi ; \
 			if [ $$node = "NodeEdge" ] ; then \
-					echo BROWSER=edge >> .env \
-					&& echo BROWSER_NAME=MicrosoftEdge >> .env ; \
+				echo BROWSER=edge >> .env \
+				&& echo BROWSER_NAME=MicrosoftEdge >> .env ; \
 			fi ; \
 			if [ $$node = "NodeFirefox" ] ; then \
-					echo BROWSER=firefox >> .env \
-					&& echo BROWSER_NAME=firefox >> .env ; \
+				echo BROWSER=firefox >> .env \
+				&& echo BROWSER_NAME=firefox >> .env ; \
 			fi ; \
 			export $$(cat .env | xargs) ; \
 			envsubst < relay_config.toml > ./videos/relay_config.toml ; \
 			DOCKER_DEFAULT_PLATFORM=$(PLATFORMS) docker compose --profile $$node -f docker-compose-v3-test-node-relay.yml up --remove-orphans --no-log-prefix --build --exit-code-from tests ; \
 			if [ $$? -ne 0 ]; then exit 1; fi ; \
-	done
+			done
 
 test_standalone_docker: standalone_docker
 	DOCKER_COMPOSE_FILE=docker-compose-v3-test-standalone-docker.yaml CONFIG_FILE=standalone_docker_config.toml HUB_CHECKS_INTERVAL=45 TEST_CUSTOM_SPECIFIC_NAME=true \
@@ -976,57 +972,57 @@ test_node_docker: hub standalone_docker standalone_chrome standalone_firefox sta
 	list_of_tests_amd64=$(or $(LIST_OF_TESTS_AMD64), "NodeChrome NodeChromium NodeFirefox NodeEdge") ; \
 	list_of_tests_arm64=$(or $(LIST_OF_TESTS_ARM64), "NodeFirefox NodeChromium") ; \
 	if [ "$(PLATFORMS)" = "linux/amd64" ]; then \
-			list_nodes="$${list_of_tests_amd64}" ; \
+		list_nodes="$${list_of_tests_amd64}" ; \
 	else \
-			list_nodes="$${list_of_tests_arm64}" ; \
+		list_nodes="$${list_of_tests_arm64}" ; \
 	fi; \
 	for node in $${list_nodes} ; do \
-			cd tests || true ; \
-			DOWNLOADS_DIR="./videos/Downloads" ; \
-			sudo rm -rf $$DOWNLOADS_DIR/* ; \
-			echo NAMESPACE=$(NAME) > .env ; \
-			echo TAG=$(TAG_VERSION) >> .env ; \
-			echo VIDEO_TAG=$(FFMPEG_TAG_VERSION)-$(BUILD_DATE) >> .env ; \
-			echo TEST_DRAIN_AFTER_SESSION_COUNT=$(or $(TEST_DRAIN_AFTER_SESSION_COUNT), 0) >> .env ; \
-			echo TEST_PARALLEL_HARDENING=$(or $(TEST_PARALLEL_HARDENING), "false") >> .env ; \
-			echo LOG_LEVEL=$(or $(LOG_LEVEL), "INFO") >> .env ; \
-			echo REQUEST_TIMEOUT=$(or $(REQUEST_TIMEOUT), 300) >> .env ; \
-			echo SELENIUM_ENABLE_MANAGED_DOWNLOADS=$(or $(SELENIUM_ENABLE_MANAGED_DOWNLOADS), "false") >> .env ; \
-			echo TEST_DELAY_AFTER_TEST=$(or $(TEST_DELAY_AFTER_TEST), 2) >> .env ; \
-			echo RECORD_STANDALONE=$(or $(RECORD_STANDALONE), "true") >> .env ; \
-			echo GRID_URL=$(or $(GRID_URL), "") >> .env ; \
-			echo HUB_CHECKS_INTERVAL=$(or $(HUB_CHECKS_INTERVAL), 20) >> .env ; \
-			echo TEST_CUSTOM_SPECIFIC_NAME=$(or $(TEST_CUSTOM_SPECIFIC_NAME), "true") >> .env ; \
-			echo NODE=$$node >> .env ; \
-			echo UID=$$(id -u) >> .env ; \
-			echo BINDING_VERSION=$(BINDING_VERSION) >> .env ; \
-			echo BASE_VERSION=$(BASE_VERSION) >> .env ; \
-			echo HOST_IP=$$(hostname -I | awk '{print $$1}') >> .env ; \
-			if [ "$(PLATFORMS)" = "linux/amd64" ]; then \
-					NODE_EDGE=edge ; \
-					NODE_CHROME=chrome ; \
-			else \
-					NODE_EDGE=chromium ; \
-					NODE_CHROME=chromium ; \
-			fi; \
+		cd tests || true ; \
+		DOWNLOADS_DIR="./videos/Downloads" ; \
+		sudo rm -rf $$DOWNLOADS_DIR/* ; \
+		echo NAMESPACE=$(NAME) > .env ; \
+		echo TAG=$(TAG_VERSION) >> .env ; \
+		echo VIDEO_TAG=$(FFMPEG_TAG_VERSION)-$(BUILD_DATE) >> .env ; \
+		echo TEST_DRAIN_AFTER_SESSION_COUNT=$(or $(TEST_DRAIN_AFTER_SESSION_COUNT), 0) >> .env ; \
+		echo TEST_PARALLEL_HARDENING=$(or $(TEST_PARALLEL_HARDENING), "false") >> .env ; \
+		echo LOG_LEVEL=$(or $(LOG_LEVEL), "INFO") >> .env ; \
+		echo REQUEST_TIMEOUT=$(or $(REQUEST_TIMEOUT), 300) >> .env ; \
+		echo SELENIUM_ENABLE_MANAGED_DOWNLOADS=$(or $(SELENIUM_ENABLE_MANAGED_DOWNLOADS), "false") >> .env ; \
+		echo TEST_DELAY_AFTER_TEST=$(or $(TEST_DELAY_AFTER_TEST), 2) >> .env ; \
+		echo RECORD_STANDALONE=$(or $(RECORD_STANDALONE), "true") >> .env ; \
+		echo GRID_URL=$(or $(GRID_URL), "") >> .env ; \
+		echo HUB_CHECKS_INTERVAL=$(or $(HUB_CHECKS_INTERVAL), 20) >> .env ; \
+		echo TEST_CUSTOM_SPECIFIC_NAME=$(or $(TEST_CUSTOM_SPECIFIC_NAME), "true") >> .env ; \
+		echo NODE=$$node >> .env ; \
+		echo UID=$$(id -u) >> .env ; \
+		echo BINDING_VERSION=$(BINDING_VERSION) >> .env ; \
+		echo BASE_VERSION=$(BASE_VERSION) >> .env ; \
+		echo HOST_IP=$$(hostname -I | awk '{print $$1}') >> .env ; \
+		if [ "$(PLATFORMS)" = "linux/amd64" ]; then \
+			NODE_EDGE=edge ; \
+			NODE_CHROME=chrome ; \
+		else \
+			NODE_EDGE=chromium ; \
+			NODE_CHROME=chromium ; \
+		fi; \
 			echo NODE_EDGE=$${NODE_EDGE} >> .env ; \
 			if [ $$node = "NodeChrome" ] ; then \
-					echo NODE_CHROME=$${NODE_CHROME} >> .env ; \
+				echo NODE_CHROME=$${NODE_CHROME} >> .env ; \
 			fi ; \
 			if [ $$node = "NodeChromium" ] ; then \
-					echo NODE_CHROME=chromium >> .env ; \
-					echo SELENIUM_GRID_TEST_HEADLESS=true >> .env ; \
+				echo NODE_CHROME=chromium >> .env ; \
+				echo SELENIUM_GRID_TEST_HEADLESS=true >> .env ; \
 			else \
-					echo NODE_CHROME=$${NODE_CHROME} >> .env ; \
+				echo NODE_CHROME=$${NODE_CHROME} >> .env ; \
 			fi ; \
 			export $$(cat .env | xargs) ; \
 			envsubst < $${config_file} > ./videos/config.toml ; \
 			DOCKER_DEFAULT_PLATFORM=$(PLATFORMS) docker compose -f $${docker_compose_file} up --remove-orphans --no-log-prefix --build --exit-code-from tests ; \
 			if [ $$? -ne 0 ]; then exit 1; fi ; \
-			if [ "$$SKIP_CHECK_DOWNLOADS_VOLUME" != "true" ] && [ "$$SELENIUM_ENABLE_MANAGED_DOWNLOADS" != "true" ] && [ -d "$$DOWNLOADS_DIR" ] && [ $$(ls -1q $$DOWNLOADS_DIR | wc -l) -eq 0 ]; then \
+				if [ "$$SKIP_CHECK_DOWNLOADS_VOLUME" != "true" ] && [ "$$SELENIUM_ENABLE_MANAGED_DOWNLOADS" != "true" ] && [ -d "$$DOWNLOADS_DIR" ] && [ $$(ls -1q $$DOWNLOADS_DIR | wc -l) -eq 0 ]; then \
 					echo "Mounted downloads directory is empty. Downloaded files could not be retrieved!" ; \
 					exit 1 ; \
-			fi ; \
+				fi ; \
 	done
 	make test_video_integrity
 
@@ -1061,11 +1057,11 @@ test_video_integrity:
 	fi; \
 	for file in $$list_files; do \
 		echo "Checking video file: $$file"; \
-	  docker run -u $$(id -u) -v $$(pwd):$$(pwd) -w $$(pwd) --entrypoint="" $(NAME)/video:$(FFMPEG_TAG_VERSION)-$(BUILD_DATE) ffmpeg -v error -i "$$file" -f null - ; \
-	  if [ $$? -ne 0 ]; then \
-	    echo "Video file $$file is corrupted"; \
-	    number_corrupted_files=$$((number_corrupted_files+1)); \
-	  fi; \
+		docker run -u $$(id -u) -v $$(pwd):$$(pwd) -w $$(pwd) --entrypoint="" $(NAME)/video:$(FFMPEG_TAG_VERSION)-$(BUILD_DATE) ffmpeg -v error -i "$$file" -f null - ; \
+		if [ $$? -ne 0 ]; then \
+			echo "Video file $$file is corrupted"; \
+			number_corrupted_files=$$((number_corrupted_files+1)); \
+		fi; \
 	  echo "------"; \
 	done; \
 	if [ $$((number_corrupted_files)) -gt 0 ]; then \
@@ -1096,9 +1092,9 @@ chart_test_autoscaling_deployment_https:
 
 chart_test_autoscaling_deployment:
 	PLATFORMS=$(PLATFORMS) TEST_EXISTING_KEDA=true RELEASE_NAME=selenium CHART_ENABLE_TRACING=true TEST_PATCHED_KEDA=$(TEST_PATCHED_KEDA) AUTOSCALING_COOLDOWN_PERIOD=30 \
-	TRACING_EXPORTER_ENDPOINT="http://\$$KUBERNETES_NODE_HOST_IP:4317" TEST_CUSTOM_SPECIFIC_NAME=true \
+	TRACING_EXPORTER_ENDPOINT=$(TRACING_EXPORTER_ENDPOINT) TEST_CUSTOM_SPECIFIC_NAME=true \
 	SECURE_CONNECTION_SERVER=true SECURE_USE_EXTERNAL_CERT=true SERVICE_TYPE_NODEPORT=true SELENIUM_GRID_PROTOCOL=https SELENIUM_GRID_HOST=$$(hostname -I | cut -d' ' -f1) SELENIUM_GRID_PORT=31444 \
-	SELENIUM_GRID_AUTOSCALING_MIN_REPLICA=1 SET_MAX_REPLICAS=3 TEST_DELAY_AFTER_TEST=2 TEST_NODE_DRAIN_AFTER_SESSION_COUNT=3 SELENIUM_GRID_MONITORING=false  \
+	SELENIUM_GRID_AUTOSCALING_MIN_REPLICA=1 SET_MAX_REPLICAS=3 TEST_DELAY_AFTER_TEST=2 TEST_NODE_DRAIN_AFTER_SESSION_COUNT=3 SELENIUM_GRID_MONITORING=false \
 	VERSION=$(TAG_VERSION) VIDEO_TAG=$(FFMPEG_TAG_VERSION)-$(BUILD_DATE) KEDA_BASED_NAME=$(KEDA_BASED_NAME) KEDA_BASED_TAG=$(KEDA_BASED_TAG) NAMESPACE=$(NAMESPACE) BINDING_VERSION=$(BINDING_VERSION) BASE_VERSION=$(BASE_VERSION) \
 	TEMPLATE_OUTPUT_FILENAME="k8s_prefixSelenium_enableTracing_secureServer_externalCerts_nodePort_autoScaling_scaledObject_existingKEDA_subPath.yaml" \
 	./tests/charts/make/chart_test.sh DeploymentAutoscaling
@@ -1113,7 +1109,7 @@ chart_test_autoscaling_job_https:
 
 chart_test_autoscaling_job_hostname:
 	PLATFORMS=$(PLATFORMS) CHART_ENABLE_TRACING=true CHART_ENABLE_BASIC_AUTH=true BASIC_AUTH_EMBEDDED_URL=true TEST_PATCHED_KEDA=$(TEST_PATCHED_KEDA) TEST_MULTIPLE_PLATFORMS=true \
-	TRACING_EXPORTER_ENDPOINT="http://\$$KUBERNETES_NODE_HOST_IP:4317" \
+	TRACING_EXPORTER_ENDPOINT=$(TRACING_EXPORTER_ENDPOINT) \
 	SECURE_INGRESS_ONLY_DEFAULT=true SECURE_USE_EXTERNAL_CERT=true SELENIUM_GRID_PROTOCOL=https SELENIUM_GRID_HOST=$$(hostname -I | cut -d' ' -f1) SELENIUM_GRID_PORT=443 \
 	VERSION=$(TAG_VERSION) VIDEO_TAG=$(FFMPEG_TAG_VERSION)-$(BUILD_DATE) KEDA_BASED_NAME=$(KEDA_BASED_NAME) KEDA_BASED_TAG=$(KEDA_BASED_TAG) NAMESPACE=$(NAMESPACE) BINDING_VERSION=$(BINDING_VERSION) BASE_VERSION=$(BASE_VERSION) \
 	TEMPLATE_OUTPUT_FILENAME="k8s_enableTracing_basicAuth_secureIngress_externalCerts_ingressPublicIP_autoScaling_originKEDA_scaledJob_subPath.yaml" \

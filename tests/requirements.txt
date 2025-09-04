@@ -8,3 +8,5 @@ yamale
 yamllint
 isort
 black
+shfmt-py
+mbake

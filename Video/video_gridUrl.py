@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 
+
 def get_grid_url():
     max_time = 3
     se_sub_path = os.getenv('SE_SUB_PATH', '')
@@ -19,8 +20,7 @@ def get_grid_url():
     if se_hub_host and se_hub_port:
         grid_url = f"{os.getenv('SE_SERVER_PROTOCOL', 'http')}://{se_hub_host}:{se_hub_port}{se_sub_path}"
     # Check for standalone mode
-    elif (os.getenv('DISPLAY_CONTAINER_NAME') and
-          os.getenv('SE_VIDEO_RECORD_STANDALONE') == 'true'):
+    elif os.getenv('DISPLAY_CONTAINER_NAME') and os.getenv('SE_VIDEO_RECORD_STANDALONE') == 'true':
         display_container = os.getenv('DISPLAY_CONTAINER_NAME')
         node_port = os.getenv('SE_NODE_PORT', '4444')
         grid_url = f"{os.getenv('SE_SERVER_PROTOCOL', 'http')}://{display_container}:{node_port}{se_sub_path}"
@@ -29,6 +29,7 @@ def get_grid_url():
     grid_url = grid_url.rstrip('/')
 
     return grid_url
+
 
 if __name__ == "__main__":
     print(get_grid_url())
