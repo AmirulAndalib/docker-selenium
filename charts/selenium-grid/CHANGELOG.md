@@ -1,3 +1,20 @@
+## :heavy_check_mark: selenium-grid-0.46.2
+
+- Chart is using image tag 4.35.0-20250909
+- Chart is tested on Kubernetes versions: v1.28.15,v1.29.15,v1.30.14,v1.31.12,v1.32.9,v1.33.5,v1.34.1
+- Chart is tested on container runtime Docker versions: 27.5.1,28.4.0
+- Chart is tested on Helm versions: v3.13.3,v3.14.3,v3.15.4,v3.16.4,v3.17.4,v3.18.6,v3.19.0
+- Chart is tested autoscaling capabilities with KEDA image tag: 2.17.2
+
+### Fixed
+- [`0c77268b`](http://github.com/seleniumhq/docker-selenium/commit/0c77268b99eb109467721214f6b063726539b9c0) - fix(doc): fix minor typo in Helm helper function (monitoring) (#2959) :: Florian LOPES
+
+### Changed
+- [`ca1feb49`](http://github.com/seleniumhq/docker-selenium/commit/ca1feb491c82273e63bcd610cdde132a1aa5f5d5) - [ci] Update tag 4.35.0-20250909 in docs and files :: Selenium CI Bot
+- [`a49dcc0e`](http://github.com/seleniumhq/docker-selenium/commit/a49dcc0e804513d4feac8501233e9a34d95ab5cf) - K8s: Update test versions matrix :: Viet Nguyen Duc
+- [`63e2e898`](http://github.com/seleniumhq/docker-selenium/commit/63e2e898a656ddc848698f86a57ece7c3471e6a0) - #2957 Fixed tolerations indent for keda patched jobs (#2957) :: Anwar
+- [`0dc36647`](http://github.com/seleniumhq/docker-selenium/commit/0dc366475273203649b086fdcc6d24d1ca7b1808) - [ci] Update chart 0.46.1 changelog :: Selenium CI Bot
+
 ## :heavy_check_mark: selenium-grid-0.46.1
 
 - Chart is using image tag 4.35.0-20250828
