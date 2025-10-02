@@ -201,6 +201,7 @@ jobs:
           committer: 'Selenium CI Bot <selenium-ci@users.noreply.github.com>'
           author: 'Selenium CI Bot <selenium-ci@users.noreply.github.com>'
           branch: browser-node-changelog
+          base: trunk
       - name: Check outputs
         if: ${{ steps.cpr.outputs.pull-request-number }}
         run: |
