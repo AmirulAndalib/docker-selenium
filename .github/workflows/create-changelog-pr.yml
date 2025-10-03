@@ -59,9 +59,17 @@ jobs:
           git config --local user.name "Selenium CI Bot"
           git add .
           git commit -m "[ci] Upload CHANGELOG for Node/Standalone ${{ inputs.browser-name }} version with Grid ${{ inputs.grid-version }}" || exit 0
-      - name: Push changes
+      - name: Commit & Push changes
         if: steps.check-pr.outputs.pr-exists == 'true'
-        run: git push origin browser-node-changelog
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          author_email: "selenium-ci@users.noreply.github.com"
+          author_name: "Selenium CI Bot"
+          message: "[ci] Upload CHANGELOG for Node/Standalone ${{ inputs.browser-name }} version with Grid ${{ inputs.grid-version }}"
+          empty: true
+          rebase: true
+          branch: "browser-node-changelog"
       - name: Create Pull Request
         if: steps.check-pr.outputs.pr-exists == 'false'
         uses: peter-evans/create-pull-request@main
