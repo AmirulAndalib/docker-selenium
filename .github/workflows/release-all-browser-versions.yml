@@ -1,0 +1,94 @@
+name: Deploy all browser versions
+
+on:
+  workflow_dispatch:
+    inputs:
+      stable:
+        description: 'Use upstream stable build'
+        required: true
+        type: string
+        default: 'true'
+      reuse-base:
+        description: 'Reuse base image to build'
+        required: false
+        type: boolean
+        default: true
+      grid-version:
+        description: 'Grid version to build. E.g: 4.28.1. Must provide if reusing base image'
+        required: false
+        type: string
+        default: ''
+      push-image:
+        description: 'Push image after testing successfully'
+        required: true
+        type: boolean
+        default: false
+      pr-changelog:
+        description: 'Create a PR for CHANGELOG'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  dispatch-chrome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch Chrome versions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'release-chrome-versions.yml',
+              ref: context.ref,
+              inputs: {
+                'stable': '${{ github.event.inputs.stable }}',
+                'reuse-base': '${{ github.event.inputs.reuse-base }}',
+                'grid-version': '${{ github.event.inputs.grid-version }}',
+                'push-image': '${{ github.event.inputs.push-image }}',
+                'pr-changelog': '${{ github.event.inputs.pr-changelog }}'
+              }
+            });
+
+  dispatch-edge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch Edge versions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'release-edge-versions.yml',
+              ref: context.ref,
+              inputs: {
+                'stable': '${{ github.event.inputs.stable }}',
+                'reuse-base': '${{ github.event.inputs.reuse-base }}',
+                'grid-version': '${{ github.event.inputs.grid-version }}',
+                'push-image': '${{ github.event.inputs.push-image }}',
+                'pr-changelog': '${{ github.event.inputs.pr-changelog }}'
+              }
+            });
+
+  dispatch-firefox:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch Firefox versions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'release-firefox-versions.yml',
+              ref: context.ref,
+              inputs: {
+                'stable': '${{ github.event.inputs.stable }}',
+                'reuse-base': '${{ github.event.inputs.reuse-base }}',
+                'grid-version': '${{ github.event.inputs.grid-version }}',
+                'push-image': '${{ github.event.inputs.push-image }}',
+                'pr-changelog': '${{ github.event.inputs.pr-changelog }}'
+              }
+            });
