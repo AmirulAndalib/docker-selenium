@@ -1,3 +1,17 @@
+## :heavy_check_mark: selenium-grid-0.47.0
+
+- Chart is using image tag 4.36.0-20251001
+- Chart is tested on Kubernetes versions: v1.28.15,v1.29.15,v1.30.14,v1.31.12,v1.32.9,v1.33.5,v1.34.1
+- Chart is tested on container runtime Docker versions: 27.5.1,28.4.0
+- Chart is tested on Helm versions: v3.13.3,v3.14.3,v3.15.4,v3.16.4,v3.17.4,v3.18.6,v3.19.0
+- Chart is tested autoscaling capabilities with KEDA image tag: 2.17.2
+
+### Changed
+- [`16d685a0`](http://github.com/seleniumhq/docker-selenium/commit/16d685a0a8a6470a345a7a78d42b6eac0b3d83d3) - [ci] Update tag 4.36.0-20251001 in docs and files :: Selenium CI Bot
+- [`09a3dc25`](http://github.com/seleniumhq/docker-selenium/commit/09a3dc25768d6a3dfe679c439238a08840e134b2) - chore(deps): Update versions to multiple nodes chart values :: Viet Nguyen Duc
+- [`273ba284`](http://github.com/seleniumhq/docker-selenium/commit/273ba2847e3260c974e776184edc626d0dbf78d6) - K8s: Switch image registry for Bitnami deps image in sub charts (#2960) :: Viet Nguyen Duc
+- [`be197fb7`](http://github.com/seleniumhq/docker-selenium/commit/be197fb77d654bc95eb41f7d9d3836556178696c) - [ci] Update chart 0.46.2 changelog :: Selenium CI Bot
+
 ## :heavy_check_mark: selenium-grid-0.46.2
 
 - Chart is using image tag 4.35.0-20250909
