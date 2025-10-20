@@ -30,6 +30,7 @@ jobs:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
         with:
+          tool-cache: true
           android: true
           dotnet: true
           haskell: true
@@ -105,8 +106,8 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 120
           command: VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} make release_nightly
-      - name: Update package versions
-        run: make generate_nightly_sbom
+#      - name: Update package versions
+#        run: make generate_nightly_sbom
       - name: Get current latest tag
         run: echo "LATEST_TAG=$(git describe --tags --abbrev=0 --exclude=nightly --exclude=selenium-grid*)" >> $GITHUB_ENV
       - name: Display latest tag

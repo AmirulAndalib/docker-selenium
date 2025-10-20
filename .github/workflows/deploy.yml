@@ -57,6 +57,7 @@ jobs:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
         with:
+          tool-cache: true
           android: true
           dotnet: true
           haskell: true
@@ -167,8 +168,8 @@ jobs:
           command: VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} make release_latest
       - name: Update package versions
         run: |
-          make generate_latest_sbom
-          make fetch_grid_scaler_resources
+#          make generate_latest_sbom
+#          make fetch_grid_scaler_resources
           make update_browser_versions_matrix
       - name: Tag browser images
         if: github.event.inputs.skip-build-push-image != 'true'
