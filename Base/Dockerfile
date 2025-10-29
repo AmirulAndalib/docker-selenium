@@ -9,6 +9,7 @@ ARG RELEASE=selenium-${VERSION}
 # Default value should be aligned with upstream Selenium (https://github.com/SeleniumHQ/selenium/blob/trunk/MODULE.bazel)
 ARG OPENTELEMETRY_VERSION=1.55.0
 ARG GRPC_VERSION=1.76.0
+ARG NETTY_VERSION=4.2.7.Final
 ARG CS_VERSION=2.1.25-M18
 ARG ENVSUBST_VERSION=1.4.6
 ARG CURL_VERSION=8.16.0
@@ -142,6 +143,11 @@ RUN --mount=type=secret,id=SEL_PASSWD \
         java -jar /tmp/cs fetch --classpath --cache /external_jars \
         io.opentelemetry:opentelemetry-exporter-otlp:${OPENTELEMETRY_VERSION} \
         io.grpc:grpc-netty:${GRPC_VERSION} \
+        io.netty:netty-handler-proxy:${NETTY_VERSION} \
+        io.netty:netty-parent:${NETTY_VERSION} \
+        io.netty:netty-codec-http:${NETTY_VERSION} \
+        io.netty:netty-codec-http2:${NETTY_VERSION} \
+        io.netty:netty-codec:${NETTY_VERSION} \
         > /external_jars/.classpath.txt \
         && chmod 664 /external_jars/.classpath.txt ; \
      fi \
