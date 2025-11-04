@@ -1,3 +1,15 @@
+## :heavy_check_mark: selenium-grid-0.49.1
+
+- Chart is using image tag 4.38.0-20251101
+- Chart is tested on Kubernetes versions: v1.28.15,v1.29.15,v1.30.14,v1.31.12,v1.32.9,v1.33.5,v1.34.1
+- Chart is tested on container runtime Docker versions: 27.5.1,28.4.0
+- Chart is tested on Helm versions: v3.13.3,v3.14.3,v3.15.4,v3.16.4,v3.17.4,v3.18.6,v3.19.0
+- Chart is tested autoscaling capabilities with KEDA image tag: 2.18.0
+
+### Changed
+- [`45cb0b29`](http://github.com/seleniumhq/docker-selenium/commit/45cb0b2918ad1b899cfe246639ce9671bfd6751f) - [ci] Update tag 4.38.0-20251101 in docs and files :: Selenium CI Bot
+- [`386a7f6f`](http://github.com/seleniumhq/docker-selenium/commit/386a7f6f602c54270774e2494b347edecd1a2df7) - [ci] Update chart 0.49.0 changelog :: Selenium CI Bot
+
 ## :heavy_check_mark: selenium-grid-0.49.0
 
 - Chart is using image tag 4.38.0-20251025
